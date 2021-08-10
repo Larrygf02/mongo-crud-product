@@ -58,7 +58,7 @@ const products = [
 router.get('/', (req, res, next) => {
   // Return a list of dummy products
   // Later, this data will be fetched from MongoDB
-  const queryPage = req.query.page;
+  /*const queryPage = req.query.page;
   const pageSize = 5;
   let resultProducts = [...products];
   if (queryPage) {
@@ -67,7 +67,28 @@ router.get('/', (req, res, next) => {
       queryPage * pageSize
     );
   }
-  res.json(resultProducts);
+  res.json(resultProducts);*/
+  mongoClient.connect('mongodb://localhost:27017/shop')
+  .then(client => {
+    const products = []
+    client.db().collection('products').find()
+        .forEach(productDoc => {
+          productDoc.price = productDoc.price.toString()
+          products.push(productDoc)
+        })
+        .then(result => {
+          console.log(result);
+          client.close()
+          res.status(200).json(products)
+        })
+        .catch(err => {
+          console.log(err)
+          client.close()
+          res.status(500).json({message: 'An error ocurred'})
+        });
+    console.log('Connected')
+  })
+  .catch(err => console.log(err))
 });
 
 // Get single product
